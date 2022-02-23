@@ -5,8 +5,8 @@ Hystart is designed to exit before the loss to avoid overshooting link throughpu
 Hystart may exit slow start prematurely and it is problematic for links with high bandwidth and high latency, such as a satellite internet connection.
 
 Hystart relies on 2 exit triggers:
-*Delay detect: If delay increases above the threshold assume queuing and enter congestion avoidance.
-*Ack Packet train: try to estimate the bandwidth of the link and exit slow start when near that value.
+* Delay detect: If delay increases above the threshold assume queuing and enter congestion avoidance.
+* Ack Packet train: try to estimate the bandwidth of the link and exit slow start when near that value.
 
 To improve Hystart performance, we try to improve Hystart's delay detection. Some statistics about the link need to be monitored (Average RTT (Round trip time) and Standard deviation (or variance)) and based on them adjust the exit threshold.
 
