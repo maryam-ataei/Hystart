@@ -13,7 +13,7 @@ To improve Hystart performance, we try to improve Hystart's delay detection. Som
 To calculate standard deviation, we use Welford’s algorithm. Therefore, Maintains 3 values:
 * Count (number of data points computed)
 * Mean (Running average value of all points seen thus far)
-* ![First equation](https://latex.codecogs.com/svg.image?M_%7B2%7D) the aggregatedifference from the mean ![Second equation](<img src="https://latex.codecogs.com/svg.image?M_{2}=\sum_{n}^{i=1}(x_{i}-\bar{x_{n}})^{2}" title="M_{2}=\sum_{n}^{i=1}(x_{i}-\bar{x_{n}})^{2}" />)
+* ![First equation](https://latex.codecogs.com/svg.image?M_%7B2%7D) the aggregatedifference from the mean ![Second equation](https://latex.codecogs.com/svg.image?M_%7B2%7D=%5Csum_%7Bn%7D%5E%7Bi=1%7D(x_%7Bi%7D-%5Cbar%7Bx_%7Bn%7D%7D)%5E%7B2%7D)
 * Variance is ![Third equation](https://latex.codecogs.com/svg.image?%5Cfrac%7BM_%7B2%7D%7D%7Bn%7D) and thus standard deviation is the square root
 
 
