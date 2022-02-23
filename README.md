@@ -14,9 +14,8 @@ To calculate standard deviation, we use Welford’s algorithm. Therefore, Mainta
 * Count (number of data points computed)
 * Mean (Running average value of all points seen thus far)
 * ![First equation](https://latex.codecogs.com/svg.image?M_%7B2%7D) the aggregate difference from the mean: 
-<p align="center">
   <br/> ![Second equation](https://latex.codecogs.com/svg.image?M_%7B2%7D=%5Csum_%7Bn%7D%5E%7Bi=1%7D(x_%7Bi%7D-%5Cbar%7Bx_%7Bn%7D%7D)%5E%7B2%7D)
-</p>
+
 
 Variance is ![Third equation](https://latex.codecogs.com/svg.image?%5Cfrac%7BM_%7B2%7D%7D%7Bn%7D) and thus standard deviation is the square root.
 
