@@ -15,7 +15,7 @@ To calculate standard deviation, we use Welford’s algorithm. Therefore, Mainta
 * Mean (Running average value of all points seen thus far)
 * ![First equation](https://latex.codecogs.com/svg.image?M_%7B2%7D) the aggregate difference from the mean: <br/> ![Second equation](https://latex.codecogs.com/svg.image?M_%7B2%7D=%5Csum_%7Bn%7D%5E%7Bi=1%7D(x_%7Bi%7D-%5Cbar%7Bx_%7Bn%7D%7D)%5E%7B2%7D)
     
-* Variance is ![Third equation](https://latex.codecogs.com/svg.image?%5Cfrac%7BM_%7B2%7D%7D%7Bn%7D) and thus standard deviation is the square root
+Variance is ![Third equation](https://latex.codecogs.com/svg.image?%5Cfrac%7BM_%7B2%7D%7D%7Bn%7D) and thus standard deviation is the square root
 
 
 By changing the following files, the required field is added to socket structure, stats are updated on each received ACK, and can be read statistics to check if HyStart should exit.
