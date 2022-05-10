@@ -652,8 +652,7 @@ static void tcp_event_data_recv(struct sock *sk, struct sk_buff *skb)
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct inet_connection_sock *icsk = inet_csk(sk);
 	u32 now;
-
-	inet_csk_schedule_ack(sk);
+    inet_csk_schedule_ack(sk);
 
 	tcp_measure_rcv_mss(sk, skb);
 
@@ -708,6 +707,7 @@ static void tcp_rtt_estimator(struct sock *sk, long mrtt_us, u32 pkts_acked)
 	long m = mrtt_us; /* RTT */
 	u32 srtt = tp->srtt_us;
 	int delta, delta2;
+    int t;
 	static long long last_m2 = 0;
 
 	/*	The following amusing code comes from Jacobson's
@@ -731,6 +731,8 @@ static void tcp_rtt_estimator(struct sock *sk, long mrtt_us, u32 pkts_acked)
 	 * In theory this should implament Welford's algorithm to keep a running 
 	 * mean standard deviation of RTT values 
 	 */
+t = 1;
+if (t == 1) {
 	printk(KERN_INFO "CUBIC DEBUG: measured RTT = %ld\n", (mrtt_us / USEC_PER_MSEC));
 	tp->sdev_stats.num_packets += 1 * pkts_acked;
 	printk(KERN_INFO "CUBIC DEBUG: current mean = %ld\n", tp-> sdev_stats.mean_rtt_us);
@@ -742,6 +744,7 @@ static void tcp_rtt_estimator(struct sock *sk, long mrtt_us, u32 pkts_acked)
 	if (last_m2 > tp->sdev_stats.m2_rtt_ms){
 		printk(KERN_INFO "CUBIC WARNING: m2 has experinced overflow");
 	}
+}
 	last_m2 = tp->sdev_stats.m2_rtt_ms;
 	
 	if (srtt != 0) {
@@ -5271,7 +5274,10 @@ static bool tcp_validate_incoming(struct sock *sk, struct sk_buff *skb,
 	}
 
 	/* Step 1: check sequence number */
+   // printk(KERN_INFO "CUBIC DEBUG: seqnumber = %u\n", TCP_SKB_CB(skb)->seq);
+
 	if (!tcp_sequence(tp, TCP_SKB_CB(skb)->seq, TCP_SKB_CB(skb)->end_seq)) {
+
 		/* RFC793, page 37: "In all states except SYN-SENT, all reset
 		 * (RST) segments are validated by checking their SEQ-fields."
 		 * And page 69: "If an incoming segment is not acceptable,
