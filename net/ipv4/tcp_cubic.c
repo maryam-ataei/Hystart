@@ -368,6 +368,18 @@ static u32 bictcp_recalc_ssthresh(struct sock *sk)
 {
 	const struct tcp_sock *tp = tcp_sk(sk);
 	struct bictcp *ca = inet_csk_ca(sk);
+    uint16_t s0, s1;
+    uint16_t de0, de1;
+	int port;
+    int desport;
+    int t2;
+	s0 = (tp->inet_conn.icsk_inet.inet_sport & 0x00ff) << 8u;
+	s1 = (tp->inet_conn.icsk_inet.inet_sport & 0xff00) >> 8u;
+	port = s0 | s1;
+    /////////////new changes/////////////////////////////////////////////////////////////////
+    de0 = (tp->inet_conn.icsk_inet.inet_dport & 0x00ff) << 8u;
+	de1 = (tp->inet_conn.icsk_inet.inet_dport & 0xff00) >> 8u;
+	desport = de0 | de1;
 
 	ca->epoch_start = 0;	/* end of epoch */
 
@@ -377,7 +389,15 @@ static u32 bictcp_recalc_ssthresh(struct sock *sk)
 			/ (2 * BICTCP_BETA_SCALE);
 	else
 		ca->last_max_cwnd = tp->snd_cwnd;
-
+    
+    //printk(KERN_ALERT "CUBIC STATS (%hu, %hu): cwnd2: $%u\n", port, desport, tp->snd_cwnd);
+  //  printk(KERN_ALERT "CUBIC STATS (%hu, %hu): SSthresh2: $%u\n", port, desport, tp->snd_ssthresh);
+    t2 = 1;
+    if (t2 == 1) {
+        if (tp->snd_cwnd >= tp->snd_ssthresh) {
+    		printk(KERN_ALERT "CUBIC INFO(%hu, %hu): EXIT SS with CWIND= %u and SSThRESH= %u \n", port, desport, tp->snd_cwnd, tp->snd_ssthresh);
+        }
+    }
 	return max((tp->snd_cwnd * beta) / BICTCP_BETA_SCALE, 2U);
 }
 
@@ -465,9 +485,13 @@ static void bictcp_acked(struct sock *sk, const struct ack_sample *sample)
 {
 	const struct tcp_sock *tp = tcp_sk(sk);
 	struct bictcp *ca = inet_csk_ca(sk);
+    //const struct rate_sample *rs; 
 	u32 delay;
 	uint16_t b0, b1;
+    uint16_t d0, d1;
 	int port;
+    int desport;
+    int t;
 	long long variance;
 	long sdev;
 	u32 start;
@@ -532,34 +556,70 @@ static void bictcp_acked(struct sock *sk, const struct ack_sample *sample)
 	b0 = (tp->inet_conn.icsk_inet.inet_sport & 0x00ff) << 8u;
 	b1 = (tp->inet_conn.icsk_inet.inet_sport & 0xff00) >> 8u;
 	port = b0 | b1;
-	//printk(KERN_INFO "CUBIC (%hu): packets since start: $%d\n", port, total_pkts++);
-	printk(KERN_INFO "CUBIC STATS (%hu): sample RTT: $%ld\n", port, (sample->rtt_us / USEC_PER_MSEC));
-	//printk(KERN_INFO "CUBIC STATS (%hu): M2: $%lld", port, (tp->sdev_stats.m2_rtt_ns / (USEC_PER_MSEC * USEC_PER_MSEC)));
-	printk(KERN_INFO "CUBIC STATS (%hu): Running avg: $%ld", port, (tp->sdev_stats.mean_rtt_us / USEC_PER_MSEC));
-	printk(KERN_INFO "CUBIC STATS (%hu): sdev: $%ld\n", port, (sdev));
-	printk(KERN_INFO "CUBIC STATS (%hu): variance: $%lld\n", port, (variance));
-	printk(KERN_INFO "CUBIC STATS (%hu): count: $%ld\n", port, tp->sdev_stats.num_packets);
-	printk(KERN_INFO "CUBIC STATS (%hu): m2: $%lld\n", port, tp->sdev_stats.m2_rtt_ms);
-	printk(KERN_INFO "CUBIC STATS (%hu): cwnd: $%d\n", port, tp->snd_cwnd);
-	printk(KERN_INFO "CUBIC STATS (%hu): pkts_acked: $%d\n", port, sample->pkts_acked);
-	//printk(KERN_INFO "CUBIC STATS (%hu): packets in flight: $%d\n", port, tp->packets_out);
-	printk(KERN_INFO "CUBIC STATS (%hu): mss: $%d\n", port, tp->mss_cache);
-	//printk(KERN_INFO "CUBIC (%hu): Sample count: $%d\n", port, ca->sample_cnt);
-	//printk(KERN_INFO "CUBIC (%hu): curr RTT: $%d\n", port, (ca->curr_rtt >> 3));
-	//printk(KERN_INFO "CUBIC (%hu): min RTT: $%d\n", port, (ca->delay_min >> 3));
-	//printk(KERN_INFO "CUBIC (%hu): delay thresh: $%d\n", port, (HYSTART_DELAY_THRESH(ca->delay_min >> 3) >> 3));
-	printk(KERN_INFO "CUBIC (%hu): Medium Deviation: $%ld\n", port, (tp->mdev_us/ USEC_PER_MSEC));
-	//printk(KERN_INFO "CUBIC (%hu): Smoothed RTT: $%ld\n", port, (tp->srtt_us/USEC_PER_MSEC));
-	//printk(KERN_INFO "CUBIC (%hu): Smoothed mdev: $%ld\n", port, (tp->rttvar_us/USEC_PER_MSEC));
-	//printk(KERN_INFO "CUBIC (%hu): Max mdev: $%ld\n", port, (tp->mdev_max_us/USEC_PER_MSEC));
-	//if (tcp_in_slow_start(tp))
-	//	printk(KERN_INFO "CUBIC INFO(%hu): In slow start\n", port);
+    /////////////new changes/////////////////////////////////////////////////////////////////
+    d0 = (tp->inet_conn.icsk_inet.inet_dport & 0x00ff) << 8u;
+	d1 = (tp->inet_conn.icsk_inet.inet_dport & 0xff00) >> 8u;
+	desport = d0 | d1;
+    
+    t = 1;
+
+    if (t == 1) {
+        ///////////////////////////////////////////////////////////////////////////////////////
+	    //printk(KERN_INFO "CUBIC (%hu): packets since start: $%d\n", port, total_pkts++);
+        //printk(KERN_INFO "CUBIC STATS (%hu): M2: $%lld", port, (tp->sdev_stats.m2_rtt_ns / (USEC_PER_MSEC * USEC_PER_MSEC)));
+        //printk(KERN_INFO "CUBIC STATS (%hu): packets in flight: $%d\n", port, tp->packets_out);
+        //printk(KERN_INFO "CUBIC (%hu): Sample count: $%d\n", port, ca->sample_cnt);
+    	//printk(KERN_INFO "CUBIC (%hu): curr RTT: $%d\n", port, (ca->curr_rtt >> 3));
+    	//printk(KERN_INFO "CUBIC (%hu): min RTT: $%d\n", port, (ca->delay_min >> 3));
+    	//printk(KERN_INFO "CUBIC (%hu): delay thresh: $%d\n", port, (HYSTART_DELAY_THRESH(ca->delay_min >> 3) >> 3));
+    	//printk(KERN_INFO "CUBIC (%hu): Smoothed RTT: $%ld\n", port, (tp->srtt_us/USEC_PER_MSEC));
+    	//printk(KERN_INFO "CUBIC (%hu): Smoothed mdev: $%ld\n", port, (tp->rttvar_us/USEC_PER_MSEC));
+    	//printk(KERN_INFO "CUBIC (%hu): Max mdev: $%ld\n", port, (tp->mdev_max_us/USEC_PER_MSEC));
+    	printk(KERN_INFO "CUBIC STATS (%hu, %hu): sample RTT: $%ld\n", port, desport, (sample->rtt_us / USEC_PER_MSEC));
+    	printk(KERN_INFO "CUBIC STATS (%hu, %hu): Running avg: $%ld", port, desport, (tp->sdev_stats.mean_rtt_us / USEC_PER_MSEC));
+    	printk(KERN_INFO "CUBIC STATS (%hu, %hu): sdev: $%ld\n", port, desport, (sdev));
+    	printk(KERN_INFO "CUBIC STATS (%hu, %hu): variance: $%lld\n", port, desport, (variance));
+    	printk(KERN_INFO "CUBIC STATS (%hu, %hu): count: $%ld\n", port, desport, tp->sdev_stats.num_packets);
+    	printk(KERN_INFO "CUBIC STATS (%hu, %hu): m2: $%lld\n", port, desport, tp->sdev_stats.m2_rtt_ms);
+    	printk(KERN_INFO "CUBIC STATS (%hu, %hu): cwnd: $%u\n", port, desport, tp->snd_cwnd);
+        /////////////new changes/////////////////////////////////////////////////////////////////
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): SSthresh: $%u\n", port, desport, tp->snd_ssthresh);
+        /////////////////////////////////////////////////////////////////////////////////////////
+    	printk(KERN_INFO "CUBIC STATS (%hu, %hu): pkts_acked: $%d\n", port, desport, sample->pkts_acked);
+    	printk(KERN_INFO "CUBIC STATS (%hu, %hu): mss: $%d\n", port, desport, tp->mss_cache);
+        printk(KERN_INFO "CUBIC (%hu, %hu): Medium Deviation: $%ld\n", port, desport, (tp->mdev_us/ USEC_PER_MSEC));
+        /////////////new changes/////////////////////////////////////////////////////////////////
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): pkt_loss: $%u\n", port, desport, tp->lost_out);
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): retrans_seg: $%u\n", port, desport, tp->retrans_out);
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): Bytes-sent: $%llu\n", port, desport, tp->bytes_sent);
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): Bytes-acked: $%llu\n", port, desport, tp->bytes_acked);
+        //printk(KERN_INFO "CUBIC STATS (%hu, %hu): seq_num: $%u\n", port, desport, tp->data_segs_out);
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): seq_num2: $%u\n", port, desport, tp->snd_nxt);
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): delivery_rate: $%u\n", port, desport, tp->rate_delivered);
+        //printk(KERN_INFO "CUBIC STATS (%hu, %hu): delivery_rate: $%u\n", port, desport, rs->delivered);
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): deliveredpkts: $%u\n", port, desport, tp->delivered);
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): packets in flight: $%d\n", port, desport, tp->packets_out);   
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): sackedout: $%u\n", port, desport, tp->sacked_out);
+        printk(KERN_INFO "CUBIC STATS (%hu, %hu): sequence-of-ack: $%u\n", port, desport, tp->pushed_seq);
+	    printk(KERN_INFO "CUBIC STATS (%hu, %hu): The end: $%u //////////////////////////////////////\n", port, desport, tp->snd_una);
+
+        if (tcp_in_slow_start(tp))
+    	    printk(KERN_INFO "CUBIC INFO(%hu, %hu): In slow start with CWIND= %u and SSThRESH= %u\n", port, desport, tp->snd_cwnd, tp->snd_ssthresh);
+   
+    }
+        /////////////////////////////////////////////////////////////////////////////////////////
+    if (tp->snd_cwnd >= tp->snd_ssthresh) {
+    		printk(KERN_INFO "CUBIC INFO(%hu, %hu): Exit slow start with CWIND= %u and SSThRESH= %u \n", port, desport, tp->snd_cwnd, tp->snd_ssthresh);
+    }   
+    
+    
+    
 	//if (ca->found == 2)
 	//	printk(KERN_INFO "CUBIC (%hu): Exit due to delay detect\n", port);
 	//printk(KERN_INFO "CUBIC STATS: sport: %hu\n", port);
 	/* hystart triggers when cwnd is larger than some threshold */
 	if (hystart && tcp_in_slow_start(tp) &&
-	    tp->snd_cwnd >= hystart_low_window){
+         tp->snd_cwnd >= hystart_low_window){
 		//printk(KERN_INFO "CUBIC: sample RTT: %ld\n", (sample->rtt_us / USEC_PER_MSEC));
 		//printk(KERN_INFO "CUBIC: socket RTT: %d\n", (ca->curr_rtt));
 		hystart_update(sk, delay);
